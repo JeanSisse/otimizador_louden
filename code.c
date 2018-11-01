@@ -31,8 +31,8 @@ void emitComment( char * c )
  * t = 2nd source register
  * c = a comment to be printed if TraceCode is TRUE
  */
-void emitRO( char *op, int r, int s, int t, char *c)
-{ fprintf(code,"%3d:  %5s  %d,%d,%d ",emitLoc++,op,r,s,t);
+void emitRO( char *op, int r, int s, int t, char *c){ 
+  fprintf(code,"%3d:  %5s  %d,%d,%d ",emitLoc++,op,r,s,t);
   if (TraceCode) fprintf(code,"\t%s",c) ;
   fprintf(code,"\n") ;
   if (highEmitLoc < emitLoc) highEmitLoc = emitLoc ;

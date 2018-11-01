@@ -124,8 +124,9 @@ TreeNode * write_stmt(void)
   return t;
 }
 
-TreeNode * exp(void)
-{ TreeNode * t = simple_exp();
+TreeNode * exp(void){
+
+  TreeNode * t = simple_exp();
   if ((token==LT)||(token==EQ)) {
     TreeNode * p = newExpNode(OpK);
     if (p!=NULL) {
@@ -140,8 +141,9 @@ TreeNode * exp(void)
   return t;
 }
 
-TreeNode * simple_exp(void)
-{ TreeNode * t = term();
+TreeNode * simple_exp(void){
+
+  TreeNode * t = term();
   while ((token==PLUS)||(token==MINUS))
   { TreeNode * p = newExpNode(OpK);
     if (p!=NULL) {

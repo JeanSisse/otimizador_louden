@@ -22,9 +22,10 @@ static int tmpOffset = 0;
 static void cGen (TreeNode * tree);
 
 /* Procedure genStmt generates code at a statement node */
-static void genStmt( TreeNode * tree)
-{ TreeNode * p1, * p2, * p3;
-  int savedLoc1,savedLoc2,currentLoc;
+static void genStmt( TreeNode *tree){
+ 
+  TreeNode *p1, *p2, *p3;
+  int savedLoc1, savedLoc2, currentLoc;
   int loc;
   switch (tree->kind.stmt) {
 
@@ -95,9 +96,11 @@ static void genStmt( TreeNode * tree)
 } /* genStmt */
 
 /* Procedure genExp generates code at an expression node */
-static void genExp( TreeNode * tree)
-{ int loc;
-  TreeNode * p1, * p2;
+static void genExp( TreeNode * tree){ 
+  
+  int loc;
+  TreeNode *p1, *p2;
+  
   switch (tree->kind.exp) {
 
     case ConstK :
@@ -168,9 +171,10 @@ static void genExp( TreeNode * tree)
 /* Procedure cGen recursively generates code by
  * tree traversal
  */
-static void cGen( TreeNode * tree)
-{ if (tree != NULL)
-  { switch (tree->nodekind) {
+static void cGen( TreeNode * tree){
+
+  if (tree != NULL){
+    switch (tree->nodekind) {
       case StmtK:
         genStmt(tree);
         break;
@@ -193,8 +197,9 @@ static void cGen( TreeNode * tree)
  * of the code file, and is used to print the
  * file name as a comment in the code file
  */
-void codeGen(TreeNode * syntaxTree, char * codefile)
-{  char * s = malloc(strlen(codefile)+7);
+void codeGen(TreeNode * syntaxTree, char * codefile){
+ 
+   char * s = malloc(strlen(codefile)+7);
    strcpy(s,"File: ");
    strcat(s,codefile);
    emitComment("TINY Compilation to TM Code");

@@ -10,12 +10,16 @@ CFLAGS =
 
 OBJS = main.o util.o scan.o parse.o symtab.o analyze.o code.o cgen.o
 
+all: tiny tm clean
+
 tiny: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o tiny
+	./tiny sample.tny
 
 tm: tm.c
-	@$(CC) $(CFLAGS) tm.c -o tm
-
+	$(CC) $(CFLAGS) tm.c -o tm
+	./tm sample.tm
+	
 main.o: main.c globals.h util.h scan.h parse.h analyze.h cgen.h
 	@$(CC) $(CFLAGS) -c main.c
 
@@ -40,12 +44,12 @@ code.o: code.c code.h globals.h
 cgen.o: cgen.c globals.h symtab.h code.h cgen.h
 	@$(CC) $(CFLAGS) -c cgen.c
 
+#run: tm
+#	./tm sample.tm
+
 clean:
-	-rm tiny
-	#-rm tm
-	-rm $(OBJS)
-	rm *.o
+	@-rm tiny
+	@-rm tm
+	@-rm $(OBJS)
 
-
-all: tiny tm
 
