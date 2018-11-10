@@ -29,6 +29,16 @@
 /* 2nd accumulator */
 #define  ac1 1
 
+/* temp1 */
+#define	 reg_temp1 2
+
+/* temp2 */
+#define	 reg_temp2 3
+
+/* temp3 */
+#define	 reg_temp3 4
+
+
 /* code emitting utilities */
 
 /* Procedure emitComment prints a comment line 
