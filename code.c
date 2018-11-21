@@ -46,8 +46,9 @@ void emitRO( char *op, int r, int s, int t, char *c){
  * s = the base register
  * c = a comment to be printed if TraceCode is TRUE
  */
-void emitRM( char * op, int r, int d, int s, char *c)
-{ fprintf(code,"%3d:  %5s  %d,%d(%d) ",emitLoc++,op,r,d,s);
+void emitRM( char * op, int r, int d, int s, char *c){ 
+  fprintf(code,"%3d:  %5s  %d,%d(%d) ",emitLoc++,op,r,d,s);
+  /*printf("%3d:  %5s  %d,%d(%d)\n",emitLoc++,op,r,d,s);*/
   if (TraceCode) fprintf(code,"\t%s",c) ;
   fprintf(code,"\n") ;
   if (highEmitLoc < emitLoc)  highEmitLoc = emitLoc ;
@@ -87,9 +88,8 @@ void emitRestore(void)
  * a = the absolute location in memory
  * c = a comment to be printed if TraceCode is TRUE
  */
-void emitRM_Abs( char *op, int r, int a, char * c)
-{ fprintf(code,"%3d:  %5s  %d,%d(%d) ",
-               emitLoc,op,r,a-(emitLoc+1),pc);
+void emitRM_Abs( char *op, int r, int a, char * c){ 
+  fprintf(code,"%3d:  %5s  %d,%d(%d) ", emitLoc,op,r,a-(emitLoc+1),pc);
   ++emitLoc ;
   if (TraceCode) fprintf(code,"\t%s",c) ;
   fprintf(code,"\n") ;

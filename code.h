@@ -30,7 +30,7 @@
 #define  ac1 1
 
 /* temp1 */
-#define	 reg_temp1 2
+#define	 ac2 2
 
 /* temp2 */
 #define	 reg_temp2 3
