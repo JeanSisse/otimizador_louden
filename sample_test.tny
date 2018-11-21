@@ -1,0 +1,11 @@
+{ Sample program
+  in TINY language -
+  computes soma simples
+}
+read a; { input an integer }
+read b; { input an integer }
+read c; { input an integer }
+if 0 < a then { dont compute 0 <= a }
+ ta := a + b + c;
+ write ta  { output }
+end

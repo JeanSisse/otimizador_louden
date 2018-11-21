@@ -19,6 +19,8 @@
 static int tmpOffset = 0;
 static int countVar = 0;
 
+static int isLT = 0;
+
 
 static void saveTmp(void);
 static void loadTmp(void);
@@ -36,10 +38,10 @@ static void genStmt( TreeNode *tree){
   
   switch (tree->kind.stmt) {
 
-      printf("tree->kind.stmt = %d\n", tree->kind.stmt);
-      printf("É: \n");
+      /*printf("tree->kind.stmt = %d\n", tree->kind.stmt);
+      printf("É: \n");*/
       case IfK :
-         printf("IfK = %d\n", IfK);
+         /*printf("IfK = %d\n", IfK);*/
          if (TraceCode) emitComment("-> if") ;
          p1 = tree->child[0] ;
          p2 = tree->child[1] ;
@@ -57,24 +59,31 @@ static void genStmt( TreeNode *tree){
          emitComment("if: jump to end belongs here");
          currentLoc = emitSkip(0) ;
          emitBackup(savedLoc1) ;
+         /*if(isLT == 1){
+          emitRM_Abs("JGE",ac,currentLoc, "if: jmp to else");
+         } else {
+          emitRM_Abs("JNE",ac,currentLoc, "if: jmp to else");
+         }*/
          emitRM_Abs("JEQ",ac,currentLoc,"if: jmp to else");
          emitRestore() ;
          if(tmpOffset < 0)
           tmpOffset++;
          
          /* recurse on else part (parte de "senao" do if)*/
-         cGen(p3);
-         currentLoc = emitSkip(0) ;
-         emitBackup(savedLoc2) ;
-         emitRM_Abs("LDA",pc,currentLoc,"jmp to end") ;
-         emitRestore() ;
+         if(p3 != NULL){
+            cGen(p3);
+            currentLoc = emitSkip(0) ;
+            emitBackup(savedLoc2) ;
+            emitRM_Abs("LDA",pc,currentLoc,"jmp to end") ;
+            emitRestore();
+          }
          if (TraceCode)  emitComment("<- if") ;
          if(tmpOffset < 0)
           tmpOffset++;
          break; /* if_k */
 
       case RepeatK:
-        printf("RepeatK = %d\n", RepeatK);
+        /*printf("RepeatK = %d\n", RepeatK);*/
          if (TraceCode) emitComment("-> repeat") ;
          p1 = tree->child[0] ;
          p2 = tree->child[1] ;
@@ -87,6 +96,11 @@ static void genStmt( TreeNode *tree){
         
          /* generate code for test */
          cGen(p2);
+         /*if(isLT == 1){
+          emitRM_Abs("JGE",ac,savedLoc1, "if: jmp to else");
+         } else {
+          emitRM_Abs("JNE",ac,savedLoc1, "if: jmp to else");
+         }*/
          emitRM_Abs("JEQ",ac,savedLoc1,"repeat: jmp back to body");
          if (TraceCode)  emitComment("<- repeat") ;
          if(tmpOffset < 0)
@@ -94,10 +108,10 @@ static void genStmt( TreeNode *tree){
          break; /* repeat */
 
       case AssignK:
-        printf("AssignK = %d\n", AssignK);
+        /*printf("AssignK = %d\n", AssignK);*/
          if (TraceCode) emitComment("-> assign");
 
-         printf("tmpOffset em assignK: %d chamando cGen\n", tmpOffset);
+         /*printf("tmpOffset em assignK: %d chamando cGen\n", tmpOffset);*/
          /* generate code for rhs */
          cGen(tree->child[0]);
          /* now store value */
@@ -111,15 +125,15 @@ static void genStmt( TreeNode *tree){
          break; /* assign_k */
 
       case ReadK:
-        printf("ReadK = %d\n", ReadK);
+        /*printf("ReadK = %d\n", ReadK);*/
          emitRO("IN",ac,0,0,"read integer value");
          loc = st_lookup(tree->attr.name);
          emitRM("ST",ac,loc,gp,"read: store value");
         
          break;
       case WriteK:
-        printf("WriteK = %d\n", WriteK);
-        printf("tmpOffset em WriteK: %d chamando cGen\n", tmpOffset);
+       /* printf("WriteK = %d\n", WriteK);
+        printf("tmpOffset em WriteK: %d chamando cGen\n", tmpOffset);*/
          /* generate code for expression to write */
         if(tmpOffset < 0)
           tmpOffset++;
@@ -142,47 +156,30 @@ static void genExp( TreeNode * tree){
 
     case ConstK :
       if (TraceCode) emitComment("-> Const");
-      printf("ConstK = %d\n", ConstK);
 /***************************** Alteração *************************************/
       /* gen code to load integer constant using LDC */
       if(tmpOffset < 0){
-        if(tmpOffset == -1){
-          printf("tmpOf to ac1 = %d\n", tmpOffset);
-          emitRM("LDC",ac1,tree->attr.val,0,"load const ac1"); 
-        }else{
-          printf("tmpOf to ac2 = %d\n", tmpOffset);
-          emitRM("LDC",ac2,tree->attr.val,0,"load const ac1"); 
-        }
+        if(tmpOffset >= -2){
+          if(tmpOffset == -1){emitRM("LDC",ac1,tree->attr.val,0,"load const ac1");}
+          else{emitRM("LDC",ac2,tree->attr.val,0,"load const ac1");}
+        }else{emitRM("ST",ac,tmpOffset+3,mp,"op: push left");}
         --tmpOffset;
-      }else{
-        printf("tmpOF to ac = %d\n", tmpOffset);
-        emitRM("LDC",ac,tree->attr.val,0,"load const ac");         
-        --tmpOffset;
-      }
+      }else{emitRM("LDC",ac,tree->attr.val,0,"load const ac");--tmpOffset;}
 /***************************** FIM *******************************************/
       if (TraceCode)  emitComment("<- Const") ;
       break; /* ConstK */
     
     case IdK :
       if (TraceCode) emitComment("-> Id") ;
-      printf("IdK = %d\n", IdK);
       loc = st_lookup(tree->attr.name);
 /***************************** Alteração *************************************/
       if(tmpOffset < 0){
-        if(tmpOffset == -1){
-          emitRM("LD",ac1,loc,gp,"load id value to ac1");       /*ac1 <- dMem[tmpOffset+reg[mp]]*/        
-          printf("tmpOF in ld ac1 = %d\n", tmpOffset);
-        }else{
-          emitRM("LD",ac2,loc,gp,"load id value to ac1");
-          printf("tmpOF in ld ac2 = %d\n", tmpOffset);
-        }
-        
+        if(tmpOffset >= -2){
+          if(tmpOffset == -1){emitRM("LD",ac1,loc,gp,"load id value to ac1");}
+          else{emitRM("LD",ac2,loc,gp,"load id value to ac1");}
+        }else{emitRM("ST",ac,tmpOffset+3,mp,"op: push left");}
         --tmpOffset;
-      }else{
-        emitRM("LD",ac,loc,gp,"load id value to ac");        /*ac <- dMem[tmpOffset+reg[mp]]*/        
-        printf("tmpOF in ld ac = %d\n", tmpOffset);
-        --tmpOffset;
-      }
+      }else{emitRM("LD",ac,loc,gp,"load id value to ac");--tmpOffset;}
 /***************************** FIM *******************************************/
       if(TraceCode)
         emitComment("<- Id") ;
@@ -190,7 +187,7 @@ static void genExp( TreeNode * tree){
 
     case OpK :
         if (TraceCode) emitComment("-> Op") ;
-        printf("OpK = %d\n", OpK);
+        /*printf("OpK = %d\n", OpK);*/
         p1 = tree->child[0];
         p2 = tree->child[1];
 
@@ -222,6 +219,7 @@ static void genExp( TreeNode * tree){
                break;
             case LT :
                emitRO("SUB",ac,ac,ac1,"op <") ;
+               /*isLT = 1;*/
                emitRM("JLT",ac,2,pc,"br if true") ;
                emitRM("LDC",ac,0,ac,"false case") ;
                emitRM("LDA",pc,1,pc,"unconditional jmp") ;
@@ -229,6 +227,7 @@ static void genExp( TreeNode * tree){
                break;
             case EQ :
                emitRO("SUB",ac,ac,ac1,"op ==") ;
+               /*isLT = 0;*/
                emitRM("JEQ",ac,2,pc,"br if true");
                emitRM("LDC",ac,0,ac,"false case") ;
                emitRM("LDA",pc,1,pc,"unconditional jmp") ;
@@ -254,12 +253,12 @@ static void cGen( TreeNode * tree){
   if (tree != NULL){
     switch (tree->nodekind) {
       case StmtK:
-        printf("chamando genStmt tmpOffset= %d\n", tmpOffset);
+        /*printf("chamando genStmt tmpOffset= %d\n", tmpOffset);*/
         genStmt(tree);
         break;
 
       case ExpK:
-        printf("chamando genExp tmpOffset= %d\n", tmpOffset);
+        /*printf("chamando genExp tmpOffset= %d\n", tmpOffset);*/
         genExp(tree);
         break;
 
