@@ -50,10 +50,13 @@ static void genStmt( TreeNode *tree){
          cGen(p1);
          savedLoc1 = emitSkip(1) ;
          emitComment("if: jump to else belongs here");
-         /* recurse on then part (parte de "então faça" do if) */
+
+         /*Caso ocorra um LDC/LD ajustamos o próximo reg a ser usado*/
          if(tmpOffset < 0)
           tmpOffset++;
-         
+
+
+         /* recurse on then part (parte de "então faça" do if) */ 
          cGen(p2);
          savedLoc2 = emitSkip(1) ;
          emitComment("if: jump to end belongs here");
@@ -161,7 +164,9 @@ static void genExp( TreeNode * tree){
       if(tmpOffset < 0){
         if(tmpOffset >= -2){
           if(tmpOffset == -1){emitRM("LDC",ac1,tree->attr.val,0,"load const ac1");}
-          else{emitRM("LDC",ac2,tree->attr.val,0,"load const ac1");}
+          else{
+            /*emitRO("ADD", ac2, ac, 0, "op +");*/
+            emitRM("LDC",ac2,tree->attr.val,0,"load const ac1");}
         }else{emitRM("ST",ac,tmpOffset+3,mp,"op: push left");}
         --tmpOffset;
       }else{emitRM("LDC",ac,tree->attr.val,0,"load const ac");--tmpOffset;}
@@ -176,7 +181,10 @@ static void genExp( TreeNode * tree){
       if(tmpOffset < 0){
         if(tmpOffset >= -2){
           if(tmpOffset == -1){emitRM("LD",ac1,loc,gp,"load id value to ac1");}
-          else{emitRM("LD",ac2,loc,gp,"load id value to ac1");}
+          else{
+            printf("tmpOffset = %d\n", tmpOffset);
+            /*emitRO("ADD", ac2, ac, 0, "op +");*/
+            emitRM("LD",ac2,loc,gp,"load const ac1");}
         }else{emitRM("ST",ac,tmpOffset+3,mp,"op: push left");}
         --tmpOffset;
       }else{emitRM("LD",ac,loc,gp,"load id value to ac");--tmpOffset;}
@@ -200,25 +208,30 @@ static void genExp( TreeNode * tree){
           /*tmpOffset++;*/
         /* gen code for ac = right operand */
         cGen(p2);
-        tmpOffset++;
         /* now load left operand */
-          /*emitRM("LD",ac1,++tmpOffset,mp,"op: load left");   /*ac1 <- dMem[tmpOffset+reg[mp]]*/
+        /*Caso todos os registradores temporários foram usados (tmpOffset <= -3), o ultimo valor carregado foi jogado no 
+          ultimo resgistrador livre (ac2) e o único livre é o ac, portanto ele recebe o próximo valor a ser carregado
+          tmpOffset é reposicionado na última posição da memória usada e então é feito o deslocamento de 3 posição 
+          (número de registradores temporários usados) afim de pegar posição de memória correta*/
+
+        if(tmpOffset < -3){emitRM("LD",ac,(++tmpOffset)+3,mp,"op: load left");} /*ac1 <- dMem[tmpOffset+reg[mp]]*/
+        else{tmpOffset++;}
         
         switch (tree->attr.op){
             case PLUS :
-               emitRO("ADD",ac,ac,ac1,"op +");
+               emitRO("ADD",ac,ac,tmpOffset*(-1),"op +");
                break;
             case MINUS :
-               emitRO("SUB",ac,ac,ac1,"op -");
+               emitRO("SUB",ac,ac,tmpOffset*(-1),"op -");
                break;
             case TIMES :
-               emitRO("MUL",ac,ac,ac1,"op *");
+               emitRO("MUL",ac,ac,tmpOffset*(-1),"op *");
                break;
             case OVER :
-               emitRO("DIV",ac,ac,ac1,"op /");
+               emitRO("DIV",ac,ac,tmpOffset*(-1),"op /");
                break;
             case LT :
-               emitRO("SUB",ac,ac,ac1,"op <") ;
+               emitRO("SUB",ac,ac,tmpOffset*(-1),"op <");
                /*isLT = 1;*/
                emitRM("JLT",ac,2,pc,"br if true") ;
                emitRM("LDC",ac,0,ac,"false case") ;
@@ -226,7 +239,7 @@ static void genExp( TreeNode * tree){
                emitRM("LDC",ac,1,ac,"true case") ;
                break;
             case EQ :
-               emitRO("SUB",ac,ac,ac1,"op ==") ;
+               emitRO("SUB",ac,ac,tmpOffset*(-1),"op ==") ;
                /*isLT = 0;*/
                emitRM("JEQ",ac,2,pc,"br if true");
                emitRM("LDC",ac,0,ac,"false case") ;

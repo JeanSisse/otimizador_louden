@@ -1,0 +1,12 @@
+{programa de MDC em TINY}
+read u;
+read v; {entrada de dois inteiros}
+if v = 0 then v:= 0 {nenhuma ação}
+else
+   repeat
+     temp := v;
+     v := u-u/v*v; {computa u mod v}
+     u := temp
+   until v = 0
+end;
+write u {saida do MDC de u & v}

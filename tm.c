@@ -235,7 +235,7 @@ int readInstructions (void)
   }
   lineNo = 0 ;
   while (! feof(pgm)){ 
-    fgets( in_Line, LINESIZE-2, pgm  ) ;
+    fgets( in_Line, LINESIZE-2, pgm  );
     inCol = 0 ; 
     lineNo++;
     lineLen = strlen(in_Line)-1 ;
@@ -355,7 +355,7 @@ STEPRESULT stepTM (void){
       { printf("Enter value for IN instruction: ") ;
         fflush (stdin);
         fflush (stdout);
-        gets(in_Line);
+        fgets(in_Line, sizeof(in_Line), stdin);
         lineLen = strlen(in_Line) ;
         inCol = 0;
         ok = getNum();
@@ -409,7 +409,7 @@ int doCommand (void){
   { printf ("Enter command: ");
     fflush (stdin);
     fflush (stdout);
-    gets(in_Line);
+    fgets(in_Line, sizeof(in_Line), stdin);
     lineLen = strlen(in_Line);
     inCol = 0;
   }
