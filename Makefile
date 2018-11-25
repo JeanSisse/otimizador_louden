@@ -14,11 +14,11 @@ all: tiny tm clean
 
 tiny: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o tiny
-	#./tiny sample.tny
+	./tiny sample.tny
 
 tm: tm.c
 	$(CC) $(CFLAGS) tm.c -o tm
-	#./tm sample.tm
+	./tm sample.tm
 	
 main.o: main.c globals.h util.h scan.h parse.h analyze.h cgen.h
 	@$(CC) $(CFLAGS) -c main.c

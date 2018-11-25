@@ -19,14 +19,52 @@
 static int tmpOffset = 0;
 static int countVar = 0;
 
-static int isLT = 0;
+typedef struct stackNode{
+	short int flag;
+	struct stackNode *next;
+}STACK;
 
+STACK *stackTop = NULL;
+
+static void initNode(STACK **node, short int flag);
+static void pushStack(short int flag);
+static short int popStack(void);
 
 static void saveTmp(void);
 static void loadTmp(void);
 
 /* prototype for internal recursive code generator */
 static void cGen (TreeNode * tree);
+
+static void initNode(STACK **node, short int flag){
+	*node = malloc(sizeof(STACK));
+	(*node)->flag = flag;
+	(*node)->next = NULL;
+}
+
+static void pushStack(short int flag){
+	STACK *stackAux;
+	initNode(&stackAux, flag);
+
+	if(stackTop == NULL){
+		stackTop = stackAux;
+	} else {
+		stackAux->next = stackTop;
+		stackTop = stackAux;
+	}
+}
+
+static short int popStack(){
+	STACK *stackAux;
+
+	stackAux = stackTop;
+	stackTop = stackTop->next;
+
+	short int aux = stackAux->flag;
+	free(stackAux);
+
+	return aux;
+}
 
 /* Procedure genStmt generates code at a statement node 
    O procedimento genStmt gera código em um nó de instrução.*/
@@ -62,12 +100,16 @@ static void genStmt( TreeNode *tree){
          emitComment("if: jump to end belongs here");
          currentLoc = emitSkip(0) ;
          emitBackup(savedLoc1) ;
-         /*if(isLT == 1){
+         
+     	 /*checagem do salto condicional adequado*/
+         if(popStack()){
           emitRM_Abs("JGE",ac,currentLoc, "if: jmp to else");
          } else {
           emitRM_Abs("JNE",ac,currentLoc, "if: jmp to else");
-         }*/
-         emitRM_Abs("JEQ",ac,currentLoc,"if: jmp to else");
+         }
+         
+         //emitRM_Abs("JEQ",ac,currentLoc,"if: jmp to else");
+
          emitRestore() ;
          if(tmpOffset < 0)
           tmpOffset++;
@@ -99,12 +141,14 @@ static void genStmt( TreeNode *tree){
         
          /* generate code for test */
          cGen(p2);
-         /*if(isLT == 1){
+         
+         if(popStack()){
           emitRM_Abs("JGE",ac,savedLoc1, "if: jmp to else");
          } else {
           emitRM_Abs("JNE",ac,savedLoc1, "if: jmp to else");
-         }*/
-         emitRM_Abs("JEQ",ac,savedLoc1,"repeat: jmp back to body");
+         }
+
+         //emitRM_Abs("JEQ",ac,savedLoc1,"repeat: jmp back to body");
          if (TraceCode)  emitComment("<- repeat") ;
          if(tmpOffset < 0)
           tmpOffset++;
@@ -232,19 +276,19 @@ static void genExp( TreeNode * tree){
                break;
             case LT :
                emitRO("SUB",ac,ac,tmpOffset*(-1),"op <");
-               /*isLT = 1;*/
-               emitRM("JLT",ac,2,pc,"br if true") ;
+               pushStack(1);
+               /*emitRM("JLT",ac,2,pc,"br if true") ;
                emitRM("LDC",ac,0,ac,"false case") ;
                emitRM("LDA",pc,1,pc,"unconditional jmp") ;
-               emitRM("LDC",ac,1,ac,"true case") ;
+               emitRM("LDC",ac,1,ac,"true case") ;*/
                break;
             case EQ :
                emitRO("SUB",ac,ac,tmpOffset*(-1),"op ==") ;
-               /*isLT = 0;*/
-               emitRM("JEQ",ac,2,pc,"br if true");
+               pushStack(0);
+               /*emitRM("JEQ",ac,2,pc,"br if true");
                emitRM("LDC",ac,0,ac,"false case") ;
                emitRM("LDA",pc,1,pc,"unconditional jmp") ;
-               emitRM("LDC",ac,1,ac,"true case") ;
+               emitRM("LDC",ac,1,ac,"true case") ;*/
                break;
             default:
                emitComment("BUG: Unknown operator");
