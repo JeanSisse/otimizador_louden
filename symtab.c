@@ -49,6 +49,10 @@ typedef struct BucketListRec{
   char *name;
   LineList lines;
   int memloc ; /* memory location for variable */
+
+  int weight;
+  int inReg;  
+
   struct BucketListRec *next;
 } * BucketList;
 
@@ -60,7 +64,7 @@ static BucketList hashTable[SIZE];
  * loc = memory location is inserted only the
  * first time, otherwise ignored
  */
-void st_insert( char * name, int lineno, int loc ){ 
+void st_insert( char * name, int lineno, int loc, int weight ){ 
   int h = hash(name);
   BucketList l =  hashTable[h];
   while ((l != NULL) && (strcmp(name,l->name) != 0))
@@ -71,10 +75,33 @@ void st_insert( char * name, int lineno, int loc ){
     l->lines = (LineList) malloc(sizeof(struct LineListRec));
     l->lines->lineno = lineno;
     l->memloc = loc;
+    l->inReg = 0;
+    l->weight = 0;
+
+    if(weight){
+      int aux = weight;
+      int aux2 = 1;
+      while (aux > 0){
+        aux2 *= 10;
+        aux--;
+      }
+      l->weight += aux2; 
+    } else l->weight++;
+
     l->lines->next = NULL;
     l->next = hashTable[h];
     hashTable[h] = l; }
   else { /* found in table, so just add line number */
+    if(weight){
+      int aux = weight;
+      int aux2 = 1;
+      while (aux > 0){
+        aux2 *= 10;
+        aux--;
+      }
+      l->weight += aux2; 
+    } else l->weight++;
+
     LineList t = l->lines;
     while (t->next != NULL) t = t->next;
     t->next = (LineList) malloc(sizeof(struct LineListRec));
@@ -101,8 +128,8 @@ int st_lookup ( char * name ){
  */
 void printSymTab(FILE * listing){ 
   int i;
-  fprintf(listing,"Variable Name  Location   Line Numbers\n");
-  fprintf(listing,"-------------  --------   ------------\n");
+  fprintf(listing,"Variable Name  Location  Weight  Line Numbers\n");
+  fprintf(listing,"-------------  --------  ------  ------------\n");
   for (i=0;i<SIZE;++i)
   { if (hashTable[i] != NULL)
     { BucketList l = hashTable[i];
@@ -110,6 +137,7 @@ void printSymTab(FILE * listing){
       { LineList t = l->lines;
         fprintf(listing,"%-14s ",l->name);
         fprintf(listing,"%-8d  ",l->memloc);
+        fprintf(listing,"%-6d ", l->weight);
         while (t != NULL)
         { fprintf(listing,"%4d ",t->lineno);
           t = t->next;

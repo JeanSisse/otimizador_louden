@@ -13,11 +13,11 @@ OBJS = main.o util.o scan.o parse.o symtab.o analyze.o code.o cgen.o
 all: tiny tm clean
 
 tiny: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o tiny
+	$(CC) $(CFLAGS) $(OBJS) -o tiny -g
 	./tiny sample.tny
 
 tm: tm.c
-	$(CC) $(CFLAGS) tm.c -o tm
+	$(CC) $(CFLAGS) tm.c -o tm -g
 	./tm sample.tm
 	
 main.o: main.c globals.h util.h scan.h parse.h analyze.h cgen.h
@@ -33,10 +33,10 @@ parse.o: parse.c parse.h scan.h globals.h util.h
 	@$(CC) $(CFLAGS) -c parse.c
 
 symtab.o: symtab.c symtab.h
-	@$(CC) $(CFLAGS) -c symtab.c
+	@$(CC) $(CFLAGS) -c symtab.c -g
 
 analyze.o: analyze.c globals.h symtab.h analyze.h
-	@$(CC) $(CFLAGS) -c analyze.c
+	@$(CC) $(CFLAGS) -c analyze.c -g
 
 code.o: code.c code.h globals.h
 	@$(CC) $(CFLAGS) -c code.c
@@ -44,8 +44,8 @@ code.o: code.c code.h globals.h
 cgen.o: cgen.c globals.h symtab.h code.h cgen.h
 	@$(CC) $(CFLAGS) -c cgen.c
 
-#run: tm
-#	./tm sample.tm
+run: tm
+	./tm sample.tm
 
 clean:
 	#@-rm tiny

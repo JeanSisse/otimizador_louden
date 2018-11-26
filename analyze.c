@@ -12,6 +12,7 @@
 
 /* counter for variable memory locations */
 static int location = 0;
+static int weight = 0;
 
 /* Procedure traverse is a generic recursive 
  * syntax tree traversal routine:
@@ -24,8 +25,10 @@ static void traverse( TreeNode * t,
 { if (t != NULL)
   { preProc(t);
     { int i;
+      if (t->kind.stmt == RepeatK) weight++;
       for (i=0; i < MAXCHILDREN; i++)
         traverse(t->child[i],preProc,postProc);
+      if (t->kind.stmt == RepeatK) weight--;
     }
     postProc(t);
     traverse(t->sibling,preProc,postProc);
@@ -53,11 +56,11 @@ static void insertNode( TreeNode * t)
         case ReadK:
           if (st_lookup(t->attr.name) == -1)
           /* not yet in table, so treat as new definition */
-            st_insert(t->attr.name,t->lineno,location++);
+            st_insert(t->attr.name,t->lineno,location++, weight);
           else
           /* already in table, so ignore location, 
              add line number of use only */ 
-            st_insert(t->attr.name,t->lineno,0);
+            st_insert(t->attr.name,t->lineno,0, weight);
           break;
         default:
           break;
@@ -68,11 +71,11 @@ static void insertNode( TreeNode * t)
       { case IdK:
           if (st_lookup(t->attr.name) == -1)
           /* not yet in table, so treat as new definition */
-            st_insert(t->attr.name,t->lineno,location++);
+            st_insert(t->attr.name,t->lineno,location++, weight);
           else
           /* already in table, so ignore location, 
              add line number of use only */ 
-            st_insert(t->attr.name,t->lineno,0);
+            st_insert(t->attr.name,t->lineno,0, weight);
           break;
         default:
           break;
